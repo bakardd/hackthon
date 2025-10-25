@@ -1,1 +1,86 @@
-
+1. Home Dashbord ; Purpose:
+Give the farmer an at-a-glance overview of their farm’s health and environment.
+Layout (iOS Style):
+Top Navbar: Minimal title “EcoAgriSense” + subtle leaf emoji 🌿
+Hero Card (Large Rounded Card):
+“Farm Health: 🟢 Excellent”
+Subtext: “Crop health at 92%, water use optimal”
+Background gradient (light green → white)
+Data Snapshot Cards (3 small):
+Water Use Efficiency: 85%
+Carbon Score: Low
+Crop Diversity: Stable
+Quick Actions (Buttons):
+[📸 Scan Crop] [📊 View Insights]
+Rounded edges, soft shadow, pastel color accents.
+Apple Inspiration:
+Feels like Apple Fitness or Weather app: clear data tiles, smooth animation, muted gradient backgrounds.
+2. Crop Scanner Page ; Purpose:
+Use AI image analysis to detect crop diseases or stress.
+Layout:
+Header: “Scan Your Crop”
+Main Card:
+Rounded container with a subtle drop shadow.
+Center button: “Take Photo / Upload Image” (Apple Camera app style).
+Minimal text instruction below: “Ensure good lighting for best AI accuracy.”
+Result Section (Post Scan):
+Image preview with smooth zoom animation.
+AI result:
+“Early Blight Detected 🌿”
+Severity bar (Apple Health-style progress circle).
+Recommendation bubble: “Use compost-based treatment.”
+Apple Inspiration:
+Same flow as iOS’s Measure or Camera app: full-screen card, clear CTAs, live animation for scan progress.
+3. Water & Resource Insights ; Purpose:
+Predict irrigation and fertilizer needs using environmental data.
+Layout:
+Header: “Smart Irrigation”
+Graph Card (Apple Charts Style):
+Minimal line chart showing water usage over time.
+Use Apple-style gridless charts with subtle gradient lines.
+Today’s Recommendation Card:
+“Water in 6 hours (1.3L/m²)” 💧
+Context bubble: “Rain forecast in 2 days — reduce by 20%.”
+Toggle Switch:
+“Eco-Mode: Optimize for water savings”
+Use iOS toggle (smooth animation and haptics simulation).
+Apple Inspiration:
+Mirrors Apple Weather’s “Next Hour Forecast” — minimal text, visually clean, data-first.
+4. Sustainability Scorecard ; Purpose:
+Gamify eco-impact with elegant visualizations.
+Layout:
+Top Section: “Eco Score: 87/100 🌿”
+Use Apple’s circular progress ring animation (like Fitness app rings).
+Cards Below:
+Water Saved: 430L this week
+CO₂ Reduced: 1.3kg
+Biodiversity Index: Stable
+Tips Card:
+“Switch to drip irrigation to boost efficiency +12%.”
+Rounded, white background with subtle drop shadow.
+Apple Inspiration:
+iOS Activity rings + Health app daily summary aesthetics — colorful yet minimal.
+5. Profile & Settings
+Purpose:
+Personalize the experience and configure farm preferences.
+Layout:
+Profile Header Card:
+User photo/avatar + name (e.g., “Ravi Sharma”)
+“Farmer since 2018” label
+List Menu (Apple Settings style):
+🌾 Crop Type
+📍 Region
+🧠 AI Alerts: On/Off toggle
+🌎 Language
+Logout Button: Minimal red text button at bottom, clean spacing.
+🧠 Apple Inspiration:
+Same feel as iOS Settings app — neutral tones, strong visual hierarchy, tactile feedback.
+🎨 Visual Design System (Apple x Nature Hybrid)
+Element	Recommendation
+Primary Color	#34C759 (Apple’s system green)
+Accent Colors	Sky Blue (#5AC8FA), Soft Brown (#A2845E)
+Background	Off-white (#F9F9F9) or slightly warm gray (#EFEFEF)
+Typography	San Francisco (SF Pro Display / SF Pro Text) — Apple default
+Icons	Apple SF Symbols (e.g., leaf.fill, drop.fill, globe.americas.fill)
+Button Style	Rounded rectangles (44px height), gradient hover, shadow lift
+Animation	Subtle fade-in, parallax depth, haptic response simulation
