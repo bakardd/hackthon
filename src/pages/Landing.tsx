@@ -146,7 +146,7 @@ const Landing = () => {
               Ready to Transform Your Farm?
             </h2>
             <p className="text-lg mb-8 opacity-90">
-              Join thousands of farmers already using AgriSmart to boost productivity and profitability
+              Join thousands of farmers already using FarmForward to boost productivity and profitability
             </p>
             <Link to="/auth">
               <Button size="lg" variant="secondary" className="text-lg px-8">
@@ -160,7 +160,7 @@ const Landing = () => {
       {/* Footer */}
       <footer className="border-t border-border mt-20">
         <div className="container mx-auto px-4 py-8 text-center text-muted-foreground">
-          <p>© 2025 AgriSmart. All rights reserved.</p>
+          <p>© 2025 FarmForward. All rights reserved.</p>
         </div>
       </footer>
     </div>
