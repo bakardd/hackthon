@@ -3,147 +3,272 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
 import { Plot } from '@/types/farm';
+import { CropRecommendation } from '@/lib/mlService';
+import { Sparkles, TrendingUp, DollarSign, Calendar } from 'lucide-react';
 
 interface PlotSetupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (plot: Plot) => void;
+  onPlotCreated?: (plot: Plot, recommendations: CropRecommendation[]) => void;
 }
 
-export function PlotSetupDialog({ open, onOpenChange, onSubmit }: PlotSetupDialogProps) {
+export function PlotSetupDialog({ open, onOpenChange, onSubmit, onPlotCreated }: PlotSetupDialogProps) {
   const [formData, setFormData] = useState({
     name: '',
     size: '',
     location: '',
-    soilType: '',
     sunlightHours: '',
-    waterAccess: '',
+    temperature: '',
+    humidity: '',
+    ph: '',
+    rainfall: '',
   });
+  const [step, setStep] = useState<'form' | 'recommendations'>('form');
+  const [recommendations, setRecommendations] = useState<CropRecommendation[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newPlot: Plot = {
-      id: Date.now().toString(),
-      name: formData.name,
-      size: parseFloat(formData.size),
-      location: formData.location,
-      soilType: formData.soilType,
-      sunlightHours: parseInt(formData.sunlightHours),
-      waterAccess: formData.waterAccess,
-    };
-    onSubmit(newPlot);
-    onOpenChange(false);
+    setLoading(true);
+    
+    try {
+      const newPlot: Omit<Plot, 'id' | 'userId' | 'createdAt' | 'updatedAt'> = {
+        name: formData.name,
+        size: parseFloat(formData.size),
+        location: formData.location,
+        sunlightHours: parseInt(formData.sunlightHours),
+        temperature: parseFloat(formData.temperature),
+        humidity: parseFloat(formData.humidity),
+        ph: parseFloat(formData.ph),
+        rainfall: parseFloat(formData.rainfall),
+      };
+      
+      // Call the main onSubmit which will handle the database and ML integration
+      await onSubmit(newPlot as Plot);
+      
+      resetForm();
+      onOpenChange(false);
+      
+    } catch (error) {
+      console.error('Error creating plot:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForm = () => {
     setFormData({
       name: '',
       size: '',
       location: '',
-      soilType: '',
       sunlightHours: '',
-      waterAccess: '',
+      temperature: '',
+      humidity: '',
+      ph: '',
+      rainfall: '',
     });
+    setStep('form');
+    setRecommendations([]);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Add New Plot</DialogTitle>
-          <DialogDescription>
-            Enter the details of your new farming plot to get personalized recommendations.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Plot Name</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g., North Field"
-              required
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="size">Size (acres)</Label>
-              <Input
-                id="size"
-                type="number"
-                step="0.1"
-                value={formData.size}
-                onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                placeholder="5.2"
-                required
-              />
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+        {step === 'form' ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>Add New Plot</DialogTitle>
+              <DialogDescription>
+                Enter your plot details including environmental conditions to get AI-powered crop recommendations.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Plot Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g., North Field"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="size">Size (acres)</Label>
+                  <Input
+                    id="size"
+                    type="number"
+                    step="0.1"
+                    value={formData.size}
+                    onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                    placeholder="5.2"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sunlight">Sunlight (hours/day)</Label>
+                  <Input
+                    id="sunlight"
+                    type="number"
+                    value={formData.sunlightHours}
+                    onChange={(e) => setFormData({ ...formData, sunlightHours: e.target.value })}
+                    placeholder="8"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  placeholder="e.g., Northern Section"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="temperature">Average Temperature (°C)</Label>
+                  <Input
+                    id="temperature"
+                    type="number"
+                    step="0.1"
+                    value={formData.temperature}
+                    onChange={(e) => setFormData({ ...formData, temperature: e.target.value })}
+                    placeholder="25.5"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="humidity">Average Humidity (%)</Label>
+                  <Input
+                    id="humidity"
+                    type="number"
+                    step="0.1"
+                    value={formData.humidity}
+                    onChange={(e) => setFormData({ ...formData, humidity: e.target.value })}
+                    placeholder="65.0"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ph">Soil pH Level</Label>
+                  <Input
+                    id="ph"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="14"
+                    value={formData.ph}
+                    onChange={(e) => setFormData({ ...formData, ph: e.target.value })}
+                    placeholder="6.5"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="rainfall">Annual Rainfall (mm)</Label>
+                  <Input
+                    id="rainfall"
+                    type="number"
+                    step="0.1"
+                    value={formData.rainfall}
+                    onChange={(e) => setFormData({ ...formData, rainfall: e.target.value })}
+                    placeholder="800.0"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={handleClose}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? 'Creating...' : 'Create Plot & Get Recommendations'}
+                </Button>
+              </div>
+            </form>
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                AI Crop Recommendations
+              </DialogTitle>
+              <DialogDescription>
+                Based on your plot conditions, here are the best crop recommendations:
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {recommendations.map((crop, index) => (
+                <Card key={index} className="hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg">{crop.name}</CardTitle>
+                        <CardDescription className="mt-1">
+                          {crop.reason}
+                        </CardDescription>
+                      </div>
+                      <Badge
+                        variant={crop.suitabilityScore >= 90 ? 'default' : 'secondary'}
+                        className="text-sm"
+                      >
+                        {crop.suitabilityScore}% Match
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="grid grid-cols-3 gap-3 text-sm">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <TrendingUp className="w-3 h-3" />
+                          <span>Yield</span>
+                        </div>
+                        <p className="font-medium">{crop.expectedYield}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <DollarSign className="w-3 h-3" />
+                          <span>Price</span>
+                        </div>
+                        <p className="font-medium">{crop.marketPrice}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Calendar className="w-3 h-3" />
+                          <span>Duration</span>
+                        </div>
+                        <p className="font-medium">{crop.growthDuration}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setStep('form')}>
+                  Create Another Plot
+                </Button>
+                <Button onClick={handleClose}>
+                  Done
+                </Button>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="sunlight">Sunlight (hours/day)</Label>
-              <Input
-                id="sunlight"
-                type="number"
-                value={formData.sunlightHours}
-                onChange={(e) => setFormData({ ...formData, sunlightHours: e.target.value })}
-                placeholder="8"
-                required
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
-            <Input
-              id="location"
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              placeholder="e.g., Northern Section"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="soilType">Soil Type</Label>
-            <Select
-              value={formData.soilType}
-              onValueChange={(value) => setFormData({ ...formData, soilType: value })}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select soil type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Loam">Loam</SelectItem>
-                <SelectItem value="Clay">Clay</SelectItem>
-                <SelectItem value="Sandy Loam">Sandy Loam</SelectItem>
-                <SelectItem value="Sandy">Sandy</SelectItem>
-                <SelectItem value="Silt">Silt</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="waterAccess">Water Access</Label>
-            <Select
-              value={formData.waterAccess}
-              onValueChange={(value) => setFormData({ ...formData, waterAccess: value })}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select water access" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Irrigation System">Irrigation System</SelectItem>
-                <SelectItem value="Drip Irrigation">Drip Irrigation</SelectItem>
-                <SelectItem value="Rainfall + Well">Rainfall + Well</SelectItem>
-                <SelectItem value="Rainfall Only">Rainfall Only</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">Create Plot</Button>
-          </div>
-        </form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

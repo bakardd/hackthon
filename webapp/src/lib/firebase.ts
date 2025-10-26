@@ -5,13 +5,13 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBWEtduPzSv4en6E2yMLiv7qaTnZ4DNhGY",
-  authDomain: "farmforward-ebd84.firebaseapp.com",
-  projectId: "farmforward-ebd84",
-  storageBucket: "farmforward-ebd84.firebasestorage.app",
-  messagingSenderId: "524338938477",
-  appId: "1:524338938477:web:bcb579acc1718dc11e7564",
-  measurementId: "G-LH8TT25N70"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase

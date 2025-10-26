@@ -3,11 +3,14 @@ export interface Plot {
   name: string;
   size: number;
   location: string;
-  soilType: string;
   currentCrop?: string;
   lastHarvest?: string;
   sunlightHours: number;
-  waterAccess: string;
+  // ML features for crop recommendation
+  temperature: number; // Average temperature in Celsius
+  humidity: number; // Average humidity percentage
+  ph: number; // Soil pH level
+  rainfall: number; // Annual rainfall in mm
   userId?: string;
   createdAt?: any;
   updatedAt?: any;
