@@ -1,0 +1,20 @@
+{
+  "features_in_order": [
+    "temperature",
+    "humidity",
+    "ph",
+    "rainfall"
+  ],
+  "target": "label",
+  "n_train": 1760,
+  "n_test": 440,
+  "random_state": 42,
+  "n_estimators": 200,
+  "test_size": 0.2,
+  "csv_path": "Crop_recommendation.csv",
+  "dropped_columns": [
+    "N",
+    "P",
+    "K"
+  ]
+}

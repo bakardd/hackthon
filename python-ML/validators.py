@@ -1,35 +1,17 @@
-"""Basic validation and normalization helpers."""
+"""Basic validation helpers used elsewhere (not required for training)."""
 from __future__ import annotations
-from typing import Tuple
-from data import ALLOWED_TEXTURES, ALLOWED_DRAINAGE
-
 
 class ValidationError(ValueError):
     pass
 
 
 def ensure_ph_bounds(ph: float) -> float:
-    # bind pH to range 0–14.
+    """Clamp pH into the inclusive range [0.0, 14.0]."""
     return max(0.0, min(14.0, float(ph)))
 
 
-def normalize_texture(s: str) -> str:
-    # normalize tokens.
-    key = s.strip().lower().replace(" ", "_")
-    if key not in ALLOWED_TEXTURES:
-        raise ValidationError(f"soil_texture must be one of {sorted(ALLOWED_TEXTURES)}; got '{s}'")
-    return key
-
-
-def normalize_drainage(s: str) -> str:
-    key = s.strip().lower()
-    if key not in ALLOWED_DRAINAGE:
-        raise ValidationError(f"drainage must be one of {sorted(ALLOWED_DRAINAGE)}; got '{s}'")
-    return key
-
-
 def band(value: float, low: float, high: float) -> str:
-    # return label for where value sits vs range.
+    """Return a label for where `value` sits relative to `[low, high]`."""
     if value < low:
         return "below"
     if value > high:
