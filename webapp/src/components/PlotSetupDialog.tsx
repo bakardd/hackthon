@@ -36,8 +36,7 @@ export function PlotSetupDialog({ open, onOpenChange, onSubmit, onPlotCreated }:
     setLoading(true);
     
     try {
-      const newPlot: Plot = {
-        id: Date.now().toString(),
+      const newPlot: Omit<Plot, 'id' | 'userId' | 'createdAt' | 'updatedAt'> = {
         name: formData.name,
         size: parseFloat(formData.size),
         location: formData.location,
@@ -48,28 +47,12 @@ export function PlotSetupDialog({ open, onOpenChange, onSubmit, onPlotCreated }:
         rainfall: parseFloat(formData.rainfall),
       };
       
-      onSubmit(newPlot);
+      // Call the main onSubmit which will handle the database and ML integration
+      await onSubmit(newPlot as Plot);
       
-      // If we have a callback for ML recommendations, trigger it
-      if (onPlotCreated) {
-        // This would typically come from the ML service
-        const mockRecommendations: CropRecommendation[] = [
-          {
-            name: 'Rice',
-            suitabilityScore: 92,
-            reason: 'High humidity and rainfall ideal for rice cultivation',
-            expectedYield: '4-6 tons/acre',
-            marketPrice: '$450-600/ton',
-            growthDuration: '120-150 days'
-          }
-        ];
-        setRecommendations(mockRecommendations);
-        setStep('recommendations');
-        onPlotCreated(newPlot, mockRecommendations);
-      } else {
-        resetForm();
-        onOpenChange(false);
-      }
+      resetForm();
+      onOpenChange(false);
+      
     } catch (error) {
       console.error('Error creating plot:', error);
     } finally {

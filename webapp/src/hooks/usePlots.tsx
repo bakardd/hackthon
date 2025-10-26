@@ -45,12 +45,22 @@ export function usePlots(): UsePlotsReturn {
     setError(null);
     
     try {
+      console.log('Creating plot with data:', plotData);
+      console.log('Current user:', user);
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
       const result = await PlotService.createPlot(plotData);
+      console.log('Plot created successfully:', result);
+      
       setPlots(prev => [result.plot, ...prev]);
       return result;
     } catch (err) {
       console.error('Error creating plot:', err);
-      setError('Failed to create plot');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create plot';
+      setError(errorMessage);
       throw err;
     }
   };

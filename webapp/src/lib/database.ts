@@ -23,6 +23,9 @@ export class PlotService {
    * Create a new plot and get ML-based crop recommendations
    */
   static async createPlot(plotData: Omit<Plot, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<{ plot: Plot; recommendations: any[] }> {
+    console.log('PlotService.createPlot called with:', plotData);
+    console.log('Current user:', auth.currentUser);
+    
     if (!auth.currentUser) {
       throw new Error('User must be authenticated to create plots');
     }
@@ -34,18 +37,26 @@ export class PlotService {
       updatedAt: new Date(),
     };
 
+    console.log('Plot data with metadata:', plotWithMetadata);
+
     try {
       // Save plot to Firestore
+      console.log('Attempting to save to Firestore...');
       const docRef = await addDoc(collection(db, this.collection), plotWithMetadata);
+      console.log('Plot saved to Firestore with ID:', docRef.id);
+      
       const newPlot: Plot = { ...plotWithMetadata, id: docRef.id };
 
       // Get ML-based crop recommendations
+      console.log('Getting ML recommendations...');
       const recommendations = await mlCropService.getCropRecommendations({
         temperature: plotData.temperature,
         humidity: plotData.humidity,
         ph: plotData.ph,
         rainfall: plotData.rainfall,
       });
+
+      console.log('Generated ML recommendations:', recommendations);
 
       return { plot: newPlot, recommendations };
     } catch (error) {
