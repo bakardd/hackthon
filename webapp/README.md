@@ -1,27 +1,22 @@
-````markdown
-# Welcome to your Lovable project
+# 🌱 FarmForward - Smart Agriculture Management
 
-## Project info
+## Project Overview
 
-**URL**: https://lovable.dev/projects/c45292b2-9445-4e4f-becf-64f8cb2cb110
+FarmForward is an AI-powered agriculture management platform that helps farmers make data-driven decisions for optimal crop cultivation.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- **AI Crop Recommendations** - ML-powered crop suggestions based on environmental data
+- **Plot Management** - Create and manage multiple farm plots
+- **Environmental Monitoring** - Track temperature, humidity, pH, and rainfall
+- **Firebase Integration** - Secure user authentication and data storage
 
-**Use Lovable**
+## How to run this project
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/c45292b2-9445-4e4f-becf-64f8cb2cb110) and start prompting.
+### Prerequisites
+- Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### Setup Instructions
 
 ```sh
 # Step 1: Clone the repository using the project's Git URL.
