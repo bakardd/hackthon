@@ -1,8 +1,2 @@
-"""
-normalization
-"""
-
-from typing import FrozenSet
-
-
-__all__ = [""]
+"""Placeholder for shared constants (intentionally minimal)."""
+__all__ = []
