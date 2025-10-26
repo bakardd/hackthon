@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { usePlots } from '@/hooks/usePlots';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { PlotSetupDialog } from '@/components/PlotSetupDialog';
 import { CropRecommendations } from '@/components/CropRecommendations';
-import { DashboardOverview } from '@/components/DashboardOverview';
+import { PlotsList } from '@/components/PlotsList';
+import { PlotDetails } from '@/components/PlotDetails';
 import { SmartInsights } from '@/components/SmartInsights';
 import { CommunityHub } from '@/components/CommunityHub';
 import { ImageWithFallback } from '@/components/ImageWithFallback';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { 
+  mockPlots,
   mockCrops, 
   mockWeatherData, 
   mockCropRecommendations,
@@ -21,7 +24,6 @@ import {
   yieldPredictions
 } from '@/lib/mockData';
 import { Plot } from '@/types/farm';
-import { CropRecommendation } from '@/lib/mlService';
 import { 
   LayoutDashboard, 
   MapPin, 
@@ -36,50 +38,87 @@ import { toast } from 'sonner';
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
-  const { plots, loading: plotsLoading, createPlot, error } = usePlots();
   const navigate = useNavigate();
+  const [plots, setPlots] = useState<Plot[]>([]);
   const [selectedPlot, setSelectedPlot] = useState<Plot | null>(null);
   const [showPlotDialog, setShowPlotDialog] = useState(false);
-  const [currentRecommendations, setCurrentRecommendations] = useState<CropRecommendation[]>([]);
+  const [loadingPlots, setLoadingPlots] = useState(true);
+  const [showPlotDetails, setShowPlotDetails] = useState(false);
 
-  // Set the first plot as selected when plots load
+  // Load user's plots from Firestore or use mock data
   useEffect(() => {
-    if (plots.length > 0 && !selectedPlot) {
-      setSelectedPlot(plots[0]);
-    }
-  }, [plots, selectedPlot]);
+    const loadPlots = async () => {
+      if (!user) {
+        // Use mock data when not logged in
+        setPlots(mockPlots);
+        setSelectedPlot(mockPlots[0]);
+        setLoadingPlots(false);
+        return;
+      }
+      
+      try {
+        const plotsQuery = query(
+          collection(db, 'plots'),
+          where('userId', '==', user.uid)
+        );
+        const querySnapshot = await getDocs(plotsQuery);
+        const loadedPlots: Plot[] = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as Plot));
+        
+        // Use user's plots if they exist, otherwise use mock data
+        if (loadedPlots.length > 0) {
+          setPlots(loadedPlots);
+          setSelectedPlot(loadedPlots[0]);
+        } else {
+          setPlots(mockPlots);
+          setSelectedPlot(mockPlots[0]);
+        }
+      } catch (error) {
+        console.error('Error loading plots:', error);
+        toast.error('Failed to load plots');
+        // Fallback to mock data on error
+        setPlots(mockPlots);
+        setSelectedPlot(mockPlots[0]);
+      } finally {
+        setLoadingPlots(false);
+      }
+    };
+
+    loadPlots();
+  }, [user]);
 
   const handleCreatePlot = async (plotData: Plot) => {
-    console.log('handleCreatePlot called with:', plotData);
-    console.log('Current user in handleCreatePlot:', user);
-    
     if (!user) {
       toast.error('Please log in to create plots');
       return;
     }
 
     try {
-      console.log('Calling createPlot...');
-      const result = await createPlot(plotData);
-      console.log('createPlot result:', result);
+      const newPlot = {
+        ...plotData,
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      const docRef = await addDoc(collection(db, 'plots'), newPlot);
       
-      setSelectedPlot(result.plot);
-      setCurrentRecommendations(result.recommendations);
+      const plotWithId = {
+        ...plotData,
+        id: docRef.id,
+      };
+      
+      setPlots([...plots, plotWithId]);
+      setSelectedPlot(plotWithId);
       toast.success('Plot created successfully!', {
-        description: `Got ${result.recommendations.length} crop recommendations for your plot.`,
+        description: 'You can now view crop recommendations for this plot.',
       });
     } catch (error) {
-      console.error('Error in handleCreatePlot:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create plot';
-      toast.error(`Failed to create plot: ${errorMessage}`);
+      console.error('Error creating plot:', error);
+      toast.error('Failed to create plot');
     }
-  };
-
-  const handlePlotCreated = (plot: Plot, recommendations: CropRecommendation[]) => {
-    setCurrentRecommendations(recommendations);
-    toast.success('🌱 Crop recommendations generated!', {
-      description: `Found ${recommendations.length} suitable crops for your conditions.`,
-    });
   };
 
   const handleSignOut = async () => {
@@ -91,7 +130,7 @@ const Index = () => {
     }
   };
 
-  if (loading || plotsLoading) {
+  if (loading || loadingPlots) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -140,15 +179,6 @@ const Index = () => {
           </div>
         </div>
       </header>
-
-      {/* Debug Info - Remove in production */}
-      {import.meta.env.DEV && (
-        <div className="fixed bottom-4 left-4 bg-black/80 text-white p-2 rounded text-xs">
-          <div>User: {user ? user.email : 'Not logged in'}</div>
-          <div>Plots: {plots.length}</div>
-          <div>Error: {error || 'None'}</div>
-        </div>
-      )}
 
       {/* Hero Section */}
       <div className="relative h-72 overflow-hidden">
@@ -204,19 +234,28 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
-            <DashboardOverview
-              plots={plots}
-              selectedPlot={selectedPlot}
-              weatherData={mockWeatherData}
-              alerts={mockAlerts}
-              fertilizationSchedule={fertilizationSchedule}
-            />
+            {showPlotDetails && selectedPlot ? (
+              <PlotDetails
+                plot={selectedPlot}
+                weatherData={mockWeatherData}
+                alerts={mockAlerts}
+                fertilizationSchedule={fertilizationSchedule}
+                onBack={() => setShowPlotDetails(false)}
+              />
+            ) : (
+              <PlotsList
+                plots={plots}
+                selectedPlot={selectedPlot}
+                onSelectPlot={(plot) => {
+                  setSelectedPlot(plot);
+                  setShowPlotDetails(true);
+                }}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="plots" className="space-y-6">
-            <CropRecommendations 
-              recommendations={currentRecommendations.length > 0 ? currentRecommendations : mockCropRecommendations}
-            />
+            <CropRecommendations recommendations={mockCropRecommendations} />
           </TabsContent>
 
           <TabsContent value="insights" className="space-y-6">
@@ -236,7 +275,6 @@ const Index = () => {
         open={showPlotDialog}
         onOpenChange={setShowPlotDialog}
         onSubmit={handleCreatePlot}
-        onPlotCreated={handlePlotCreated}
       />
     </div>
   );

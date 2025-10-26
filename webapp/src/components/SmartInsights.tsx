@@ -8,7 +8,8 @@ import {
   TrendingUp, 
   AlertTriangle,
   Lightbulb,
-  Target
+  Target,
+  DollarSign
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line } from 'recharts';
 import { YieldPrediction, SoilMoistureData } from '@/types/farm';
@@ -50,6 +51,30 @@ export function SmartInsights({ yieldPredictions, soilMoistureData }: SmartInsig
       action: 'Continue regular monitoring',
     },
   ];
+
+  const revenueEstimates = yieldPredictions.map(pred => {
+    const marketPrices: { [key: string]: number } = {
+      'Maize': 250,
+      'Cassava': 180,
+      'Beans': 320,
+      'Rice': 280,
+    };
+    
+    const pricePerTon = marketPrices[pred.crop] || 200;
+    const estimatedRevenue = pred.predicted * pricePerTon;
+    const actualRevenue = pred.actual ? pred.actual * pricePerTon : null;
+    
+    return {
+      crop: pred.crop,
+      predictedYield: pred.predicted,
+      actualYield: pred.actual,
+      marketPrice: pricePerTon,
+      estimatedRevenue,
+      actualRevenue,
+    };
+  });
+
+  const totalEstimatedRevenue = revenueEstimates.reduce((sum, item) => sum + item.estimatedRevenue, 0);
 
   return (
     <div className="space-y-6">
@@ -140,6 +165,58 @@ export function SmartInsights({ yieldPredictions, soilMoistureData }: SmartInsig
               <div className="flex items-start gap-2 text-sm bg-muted/50 p-3 rounded">
                 <Lightbulb className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
                 <p>{item.recommendation}</p>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Revenue Estimation */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-primary" />
+            Revenue Estimation
+          </CardTitle>
+          <CardDescription>Projected income based on yield and current market prices</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Total Estimated Revenue</span>
+              <span className="text-2xl font-bold text-primary">${totalEstimatedRevenue.toLocaleString()}</span>
+            </div>
+          </div>
+          
+          {revenueEstimates.map((item, index) => (
+            <div key={index} className="space-y-2 p-4 border rounded-lg">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">{item.crop}</h4>
+                <Badge variant="secondary">
+                  ${item.marketPrice}/ton
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Predicted Yield</p>
+                  <p className="font-medium">{item.predictedYield} tons/acre</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Est. Revenue</p>
+                  <p className="font-medium text-primary">${item.estimatedRevenue.toLocaleString()}</p>
+                </div>
+                {item.actualYield && (
+                  <>
+                    <div>
+                      <p className="text-muted-foreground">Actual Yield</p>
+                      <p className="font-medium">{item.actualYield} tons/acre</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Actual Revenue</p>
+                      <p className="font-medium text-primary">${item.actualRevenue?.toLocaleString()}</p>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           ))}
