@@ -8,6 +8,11 @@ export interface Plot {
   lastHarvest?: string;
   sunlightHours: number;
   waterAccess: string;
+  // ML Model Parameters for crop recommendations
+  temperature: number; // Average temperature in Celsius
+  humidity: number; // Humidity percentage
+  ph: number; // Soil pH level
+  rainfall: number; // Annual rainfall in mm
   userId?: string;
   createdAt?: any;
   updatedAt?: any;

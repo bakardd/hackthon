@@ -11,6 +11,10 @@ export const mockPlots: Plot[] = [
     lastHarvest: '2024-08-15',
     sunlightHours: 8,
     waterAccess: 'Irrigation System',
+    temperature: 22.5,
+    humidity: 65.0,
+    ph: 6.2,
+    rainfall: 85.0,
   },
   {
     id: '2',
@@ -21,6 +25,10 @@ export const mockPlots: Plot[] = [
     currentCrop: 'Cassava',
     sunlightHours: 7,
     waterAccess: 'Rainfall + Well',
+    temperature: 24.0,
+    humidity: 82.0,
+    ph: 6.8,
+    rainfall: 245.0,
   },
   {
     id: '3',
@@ -30,6 +38,10 @@ export const mockPlots: Plot[] = [
     soilType: 'Sandy Loam',
     sunlightHours: 9,
     waterAccess: 'Drip Irrigation',
+    temperature: 26.5,
+    humidity: 25.0,
+    ph: 6.9,
+    rainfall: 38.0,
   },
 ];
 

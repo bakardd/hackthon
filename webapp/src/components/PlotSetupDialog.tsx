@@ -17,9 +17,11 @@ export function PlotSetupDialog({ open, onOpenChange, onSubmit }: PlotSetupDialo
     name: '',
     size: '',
     location: '',
-    soilType: '',
     sunlightHours: '',
-    waterAccess: '',
+    temperature: '',
+    humidity: '',
+    ph: '',
+    rainfall: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -29,9 +31,13 @@ export function PlotSetupDialog({ open, onOpenChange, onSubmit }: PlotSetupDialo
       name: formData.name,
       size: parseFloat(formData.size),
       location: formData.location,
-      soilType: formData.soilType,
+      soilType: 'Not specified', // Default value
       sunlightHours: parseInt(formData.sunlightHours),
-      waterAccess: formData.waterAccess,
+      waterAccess: 'Not specified', // Default value
+      temperature: parseFloat(formData.temperature),
+      humidity: parseFloat(formData.humidity),
+      ph: parseFloat(formData.ph),
+      rainfall: parseFloat(formData.rainfall),
     };
     onSubmit(newPlot);
     onOpenChange(false);
@@ -39,9 +45,11 @@ export function PlotSetupDialog({ open, onOpenChange, onSubmit }: PlotSetupDialo
       name: '',
       size: '',
       location: '',
-      soilType: '',
       sunlightHours: '',
-      waterAccess: '',
+      temperature: '',
+      humidity: '',
+      ph: '',
+      rainfall: '',
     });
   };
 
@@ -51,7 +59,7 @@ export function PlotSetupDialog({ open, onOpenChange, onSubmit }: PlotSetupDialo
         <DialogHeader>
           <DialogTitle>Add New Plot</DialogTitle>
           <DialogDescription>
-            Enter the details of your new farming plot to get personalized recommendations.
+            Enter your plot details and environmental data to get AI-powered crop recommendations based on our machine learning model.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -100,42 +108,62 @@ export function PlotSetupDialog({ open, onOpenChange, onSubmit }: PlotSetupDialo
               required
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="soilType">Soil Type</Label>
-            <Select
-              value={formData.soilType}
-              onValueChange={(value) => setFormData({ ...formData, soilType: value })}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select soil type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Loam">Loam</SelectItem>
-                <SelectItem value="Clay">Clay</SelectItem>
-                <SelectItem value="Sandy Loam">Sandy Loam</SelectItem>
-                <SelectItem value="Sandy">Sandy</SelectItem>
-                <SelectItem value="Silt">Silt</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="waterAccess">Water Access</Label>
-            <Select
-              value={formData.waterAccess}
-              onValueChange={(value) => setFormData({ ...formData, waterAccess: value })}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select water access" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Irrigation System">Irrigation System</SelectItem>
-                <SelectItem value="Drip Irrigation">Drip Irrigation</SelectItem>
-                <SelectItem value="Rainfall + Well">Rainfall + Well</SelectItem>
-                <SelectItem value="Rainfall Only">Rainfall Only</SelectItem>
-              </SelectContent>
-            </Select>
+          
+          {/* ML Model Parameters for Crop Recommendations */}
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-medium text-gray-900 mb-3">Environmental Data for Crop Recommendations</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="temperature">Avg Temperature (°C)</Label>
+                <Input
+                  id="temperature"
+                  type="number"
+                  step="0.1"
+                  value={formData.temperature}
+                  onChange={(e) => setFormData({ ...formData, temperature: e.target.value })}
+                  placeholder="25.5"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="humidity">Humidity (%)</Label>
+                <Input
+                  id="humidity"
+                  type="number"
+                  step="0.1"
+                  value={formData.humidity}
+                  onChange={(e) => setFormData({ ...formData, humidity: e.target.value })}
+                  placeholder="75.0"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ph">Soil pH</Label>
+                <Input
+                  id="ph"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="14"
+                  value={formData.ph}
+                  onChange={(e) => setFormData({ ...formData, ph: e.target.value })}
+                  placeholder="6.5"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="rainfall">Annual Rainfall (mm)</Label>
+                <Input
+                  id="rainfall"
+                  type="number"
+                  step="0.1"
+                  value={formData.rainfall}
+                  onChange={(e) => setFormData({ ...formData, rainfall: e.target.value })}
+                  placeholder="800.0"
+                  required
+                />
+              </div>
+            </div>
           </div>
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

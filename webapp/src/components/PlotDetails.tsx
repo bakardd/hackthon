@@ -1,5 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from './ui/alert-dialog';
 import { Plot, WeatherData, Alert, FertilizationSchedule } from '@/types/farm';
 import { 
   MapPin, 
@@ -9,10 +20,12 @@ import {
   AlertCircle,
   CheckCircle2,
   Info,
-  ArrowLeft
+  ArrowLeft,
+  Trash2
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { MLCropRecommendations } from './MLCropRecommendations';
 
 interface PlotDetailsProps {
   plot: Plot;
@@ -20,6 +33,7 @@ interface PlotDetailsProps {
   alerts: Alert[];
   fertilizationSchedule: FertilizationSchedule[];
   onBack: () => void;
+  onDelete?: (plotId: string) => void;
 }
 
 export function PlotDetails({ 
@@ -27,7 +41,8 @@ export function PlotDetails({
   weatherData, 
   alerts, 
   fertilizationSchedule,
-  onBack 
+  onBack,
+  onDelete 
 }: PlotDetailsProps) {
   const alertIcon = (type: string) => {
     switch (type) {
@@ -40,22 +55,53 @@ export function PlotDetails({
   return (
     <div className="space-y-6">
       {/* Header with back button */}
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="sm" onClick={onBack} className="gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Plots
-        </Button>
-        <div>
-          <h2 className="text-2xl font-bold">{plot.name}</h2>
-          <p className="text-muted-foreground flex items-center gap-1">
-            <MapPin className="w-4 h-4" />
-            {plot.location}
-          </p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="sm" onClick={onBack} className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Plots
+          </Button>
+          <div>
+            <h2 className="text-2xl font-bold">{plot.name}</h2>
+            <p className="text-muted-foreground flex items-center gap-1">
+              <MapPin className="w-4 h-4" />
+              {plot.location}
+            </p>
+          </div>
         </div>
+        {onDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                className="gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Plot
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete "{plot.name}" and all associated data. 
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => onDelete(plot.id)}>
+                  Delete Plot
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       {/* Plot Details Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Plot Size</CardTitle>
@@ -77,17 +123,6 @@ export function PlotDetails({
             <p className="text-xs text-muted-foreground">
               {plot.lastHarvest ? `Last: ${plot.lastHarvest}` : 'No harvest yet'}
             </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Soil Type</CardTitle>
-            <Droplet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{plot.soilType}</div>
-            <p className="text-xs text-muted-foreground">{plot.waterAccess}</p>
           </CardContent>
         </Card>
 
@@ -124,6 +159,9 @@ export function PlotDetails({
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {/* ML Crop Recommendations */}
+      <MLCropRecommendations plot={plot} />
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Alerts */}

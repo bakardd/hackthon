@@ -12,9 +12,8 @@ import { CommunityHub } from '@/components/CommunityHub';
 import { ImageWithFallback } from '@/components/ImageWithFallback';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import { plotsService } from '@/lib/plotsService';
 import { 
-  mockPlots,
   mockCrops, 
   mockWeatherData, 
   mockCropRecommendations,
@@ -45,42 +44,26 @@ const Index = () => {
   const [loadingPlots, setLoadingPlots] = useState(true);
   const [showPlotDetails, setShowPlotDetails] = useState(false);
 
-  // Load user's plots from Firestore or use mock data
+  // Load user's plots from Firestore
   useEffect(() => {
     const loadPlots = async () => {
       if (!user) {
-        // Use mock data when not logged in
-        setPlots(mockPlots);
-        setSelectedPlot(mockPlots[0]);
+        // Clear plots when not logged in
+        setPlots([]);
+        setSelectedPlot(null);
         setLoadingPlots(false);
         return;
       }
       
       try {
-        const plotsQuery = query(
-          collection(db, 'plots'),
-          where('userId', '==', user.uid)
-        );
-        const querySnapshot = await getDocs(plotsQuery);
-        const loadedPlots: Plot[] = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        } as Plot));
-        
-        // Use user's plots if they exist, otherwise use mock data
-        if (loadedPlots.length > 0) {
-          setPlots(loadedPlots);
-          setSelectedPlot(loadedPlots[0]);
-        } else {
-          setPlots(mockPlots);
-          setSelectedPlot(mockPlots[0]);
-        }
+        const loadedPlots = await plotsService.getUserPlots(user.uid);
+        setPlots(loadedPlots);
+        setSelectedPlot(loadedPlots.length > 0 ? loadedPlots[0] : null);
       } catch (error) {
         console.error('Error loading plots:', error);
         toast.error('Failed to load plots');
-        // Fallback to mock data on error
-        setPlots(mockPlots);
-        setSelectedPlot(mockPlots[0]);
+        setPlots([]);
+        setSelectedPlot(null);
       } finally {
         setLoadingPlots(false);
       }
@@ -96,28 +79,34 @@ const Index = () => {
     }
 
     try {
-      const newPlot = {
-        ...plotData,
-        userId: user.uid,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      };
-
-      const docRef = await addDoc(collection(db, 'plots'), newPlot);
-      
-      const plotWithId = {
-        ...plotData,
-        id: docRef.id,
-      };
-      
-      setPlots([...plots, plotWithId]);
-      setSelectedPlot(plotWithId);
+      const newPlot = await plotsService.createPlot(user.uid, plotData);
+      setPlots([...plots, newPlot]);
+      setSelectedPlot(newPlot);
       toast.success('Plot created successfully!', {
         description: 'You can now view crop recommendations for this plot.',
       });
     } catch (error) {
       console.error('Error creating plot:', error);
       toast.error('Failed to create plot');
+    }
+  };
+
+  const handleDeletePlot = async (plotId: string) => {
+    if (!user) {
+      toast.error('Please log in to delete plots');
+      return;
+    }
+
+    try {
+      await plotsService.deletePlot(plotId);
+      const updatedPlots = plots.filter(plot => plot.id !== plotId);
+      setPlots(updatedPlots);
+      setSelectedPlot(updatedPlots.length > 0 ? updatedPlots[0] : null);
+      setShowPlotDetails(false);
+      toast.success('Plot deleted successfully');
+    } catch (error) {
+      console.error('Error deleting plot:', error);
+      toast.error('Failed to delete plot');
     }
   };
 
@@ -241,6 +230,7 @@ const Index = () => {
                 alerts={mockAlerts}
                 fertilizationSchedule={fertilizationSchedule}
                 onBack={() => setShowPlotDetails(false)}
+                onDelete={handleDeletePlot}
               />
             ) : (
               <PlotsList
