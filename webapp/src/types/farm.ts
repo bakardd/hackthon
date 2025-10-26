@@ -8,6 +8,9 @@ export interface Plot {
   lastHarvest?: string;
   sunlightHours: number;
   waterAccess: string;
+  userId?: string;
+  createdAt?: any;
+  updatedAt?: any;
 }
 
 export interface Crop {

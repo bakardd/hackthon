@@ -14,7 +14,7 @@ import { Plot, WeatherData, Alert, FertilizationSchedule } from '@/types/farm';
 
 interface DashboardOverviewProps {
   plots: Plot[];
-  selectedPlot: Plot;
+  selectedPlot: Plot | null;
   weatherData: WeatherData[];
   alerts: Alert[];
   fertilizationSchedule: FertilizationSchedule[];
@@ -37,6 +37,16 @@ export function DashboardOverview({
       default: return <Info className="w-4 h-4" />;
     }
   };
+
+  if (!selectedPlot) {
+    return (
+      <div className="text-center py-12">
+        <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-semibold mb-2">No Plot Selected</h3>
+        <p className="text-muted-foreground">Create a plot to get started with your farm management.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

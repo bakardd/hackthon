@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tractor, Moon, Sun } from 'lucide-react';
+import { Tractor } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { useTheme } from 'next-themes';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { useNavigate } from 'react-router-dom';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -16,6 +17,7 @@ const loginSchema = z.object({
 });
 
 const signupSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z
     .string()
@@ -30,7 +32,8 @@ const signupSchema = z.object({
 
 const Auth = () => {
   const { signIn, signUp } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -42,6 +45,7 @@ const Auth = () => {
       setLoading(true);
       await signIn(validated.email, validated.password);
       toast.success('Welcome back!');
+      navigate('/dashboard');
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
@@ -57,10 +61,11 @@ const Auth = () => {
 
   const handleSignup = async () => {
     try {
-      const validated = signupSchema.parse({ email, password, confirmPassword });
+      const validated = signupSchema.parse({ name, email, password, confirmPassword });
       setLoading(true);
-      await signUp(validated.email, validated.password);
+      await signUp(validated.email, validated.password, validated.name);
       toast.success('Account created successfully!');
+      navigate('/dashboard');
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
@@ -78,16 +83,9 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Button
-        variant="outline"
-        size="icon"
-        className="fixed top-4 right-4"
-        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      >
-        <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-        <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-        <span className="sr-only">Toggle theme</span>
-      </Button>
+      <div className="fixed top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-lg">
         <div className="flex items-center justify-center gap-3 mb-8">
           <div className="p-3 bg-primary rounded-lg">
@@ -153,6 +151,17 @@ const Auth = () => {
                 <CardDescription>Get started with FarmForward today</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-name">Full Name</Label>
+                  <Input
+                    id="signup-name"
+                    type="text"
+                    placeholder="John Doe"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <Input
